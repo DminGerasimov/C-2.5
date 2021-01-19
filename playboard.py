@@ -10,6 +10,22 @@ class Dot:
     def __eq__(self, _dot):
         return self.x == _dot.x and self.y ==_dot.y 
 
+
+# exception
+class PlayBoardException(Exception):
+    pass""
+
+class PlayBoardOutException(PlayBoardException):
+    def __str__(self):
+        return "Попытка выхода за игровое поле."
+
+class PlayBoardBuzyException(PlayBoardException):
+    def __str__(self):
+        return "Попытка хода в отстреляную точку"
+
+class PlayBoardOccupiedException(PlayBoardException):
+    pass
+
 # класс корабля
 class Ship:
     def __init__(self, xy, l, horiz):   # xy  - координаты точки на игровом поле; 
@@ -46,8 +62,24 @@ class Playboard:
         self.buzy = []
 
     def add_ship(self, ship):
+        for d in ship.ship_dots:
+            if not (0 <= d.x < self.size) and (0 <= d.y < self.size) or d in self.buzy:
+                raise PlayBoardOccupiedException()
+
         for p in ship.ship_dots:
             self.matrix[p.y][p.x] = "■"
+
+    def ship_env(self, ship):
+        env = [(1, 1), (1, 0), (1, -1),
+               (0, -1), (-1, -1), (-1, 0),
+               (-1, 1), (0, 1)] # точки вокруг корабля
+        
+        for d in ship.ship_dots:
+            for ex, ey in env:
+                cur = Dot(d.x + ex, d.y + ey)
+                if (0 <= cur.x < self.size) and (0 <= cur.y < self.size) and cur not in self.buzy:
+                    self.matrix[cur.y][cur.x] = "."
+                    self.buzy.append(cur)
 
 
     def __str__(self):
@@ -61,10 +93,16 @@ class Playboard:
 
 
 
-d1 = Dot(2, 1)
-s1 = Ship(d1, 3, False)
+d1 = Dot(2, 2)
+s1 = Ship(d1, 3, True)
 print(s1.ship_dots)
 print(s1.shuted(Dot(1,2)))
 pb = Playboard(visible = True)
 pb.add_ship(s1)
+pb.ship_env(s1)
+print(pb)
+print()
+s2 = Ship(Dot(2, 4),2, True)
+pb.add_ship(s2)
+pb.ship_env(s2)
 print(pb)
